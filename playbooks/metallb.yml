@@ -1,0 +1,51 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    metallb_version: v0.9.3
+    metallb_pool_start: 192.168.1.10
+    metallb_pool_end: 192.168.1.20
+  tasks:
+    - name: apply metallb namespace
+      command: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/manifests/namespace.yaml
+      register: metallb_namespace
+      changed_when: |-
+        not (metallb_namespace.stdout == 'namespace/metallb-system unchanged')
+
+# when_changed needs to be setup.
+    - name: apply metallb config
+      command: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/manifests/metallb.yaml
+      register: metallb_config
+#      changed_when: |-
+#        metallb_config.stdout == 'podsecuritypolicy.policy/controller created' or
+#        metallb_config.stdout == 'podsecuritypolicy.policy/speaker created' or
+#        not (metallb_config.stdout == 'serviceaccount/controller unchanged') or
+#        not (metallb_config.stdout == 'serviceaccount/speaker unchanged') or
+#        not (metallb_config.stdout == 'clusterrole.rbac.authorization.k8s.io/metallb-system:controller unchanged') or
+#        not (metallb_config.stdout == 'clusterrole.rbac.authorization.k8s.io/metallb-system:speaker unchanged') or
+#        not (metallb_config.stdout == 'role.rbac.authorization.k8s.io/config-watcher unchanged') or
+#        not (metallb_config.stdout == 'role.rbac.authorization.k8s.io/pod-lister unchanged') or
+#        not (metallb_config.stdout == 'clusterrolebinding.rbac.authorization.k8s.io/metallb-system:controller unchanged') or
+#        not (metallb_config.stdout == 'clusterrolebinding.rbac.authorization.k8s.io/metallb-system:speaker unchanged') or
+#        not (metallb_config.stdout == 'rolebinding.rbac.authorization.k8s.io/config-watcher unchanged') or
+#        not (metallb_config.stdout == 'rolebinding.rbac.authorization.k8s.io/pod-lister unchanged') or
+#        not (metallb_config.stdout == 'daemonset.apps/speaker unchanged') or
+#        not (metallb_config.stdout == 'deployment.apps/controller unchanged')
+#
+#    - debug:
+#        var: metallb_config
+#
+    - name: create metallb secret
+      command: kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+      register: metallb_secret
+      when:
+        - metallb_namespace.stdout == 'namespace/metallb-system created'
+#        - metallb_namespace.stdout == 'namespace/metallb-system created'
+#        not (metallb_config.stdout == 'namespace/metallb-system unchanged')
+#kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+
+    - name: apply metallb config
+      k8s:
+        state: present
+        definition: "{{ lookup('template', 'templates/metallb-config.yml') }}"

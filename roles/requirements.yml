@@ -1,2 +1,2 @@
-- src: https://github.com/pik8s/ansible-role-pik8s.git
+- src: git@github.com:pik8s/ansible_role_pik8s.git
   scm: git

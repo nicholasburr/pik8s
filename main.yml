@@ -3,60 +3,18 @@
   become: true
 
   roles:
-    - role: ansible-role-pik8s
+    - role: ansible_role_pik8s
 
   tasks:
-    - name: Install ansible
-      yum:
-        pkg: ansible
-        state: installed
+    - name: create local .kube/config
+      fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: ~/.kube/config
+        flat: true
+      when: pik8s_cluster_role == 'master'
 
-    - name: Create local directory to work from
-      file:
-        path: "/home/pi/ansible{{ item.workdir }}"
-        state: directory
-        owner: pi
-        group: pi
-        mode: 0751
-      with_items:
-        - "{{ pik8s_ansible_pull }}"
+- import_playbook: playbooks/metallb.yml
 
-    - name: Copy ansible inventory file to client
-      copy:
-        src: /etc/ansible/hosts
-        dest: /etc/ansible/hosts
-        owner: pi
-        group: pi
-        mode: 0644
-
-    - name: Create crontab entry to clone/pull git repository
-      lineinfile:
-        path: /etc/cron.d/ansible-pull
-        state: present
-        create: true
-        owner: pi
-        group: pi
-        mode: 0644
-        line: |
-            {{ item.schedule }} {{ item.cron_user }} ansible-pull -d {{ item.workdir }} -U {{ item.repo_url }} >>{{ item.logfile }} 2>&1
-      with_items:
-        - "{{ pik8s_ansible_pull }}"
-
-    - name: Create logrotate entry for ansible-pull.log
-      blockinfile:
-        path: /etc/logrotate.d/ansible-pull
-        state: present
-        create: true
-        owner: pi
-        group: pi
-        mode: 0644
-        block: |
-              {{ item.logfile }} {
-                rotate 7
-                daily
-                compress
-                missingok
-                notifempty
-              }
-      with_items:
-        - "{{ pik8s_ansible_pull }}"
+#- import_playbook: playbooks/dashboard.yml
+#  when: pik8s_cluster_role == 'master'
+#
