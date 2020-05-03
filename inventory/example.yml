@@ -16,31 +16,5 @@ all:
       vars:
         pik8s_docker_ce_version: 19.03
         pik8s_kubernetes_version: 1.17
-        pik8s_ansible_pull:
-          - repo_url:
-            workdir: pik8s-public
-            schedule:
-            cron_user: 
         metallb_pool_start: 192.168.100.50
         metallb_pool_end: 192.168.100.99
-# Start Second Cluster
-    pik8s_b:
-      hosts:
-        pik8s4:
-          pik8s_cluster_role: master
-        pik8s5:
-          pik8s_cluster_role: worker
-        pik8s6:
-          pik8s_cluster_role: worker
-        pik8s7:
-          pik8s_cluster_role: worker
-      vars:
-        pik8s_docker_ce_version: 19.03
-        pik8s_kubernetes_version: 1.18
-        pik8s_ansible_pull:
-          - repo_url:
-            workdir:
-            schedule:
-            cron_user:
-        metallb_pool_start: 192.168.1.100
-        metallb_pool_end: 192.168.1.149
