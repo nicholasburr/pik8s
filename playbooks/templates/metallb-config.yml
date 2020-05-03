@@ -6,7 +6,7 @@ metadata:
 data:
   config: |
     address-pools:
-    - name: nickdoes.io
+    - name: default
       protocol: layer2
       addresses:
       - {{ metallb_pool_start }}-{{ metallb_pool_end }}
