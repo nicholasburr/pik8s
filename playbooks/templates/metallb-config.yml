@@ -6,7 +6,9 @@ metadata:
 data:
   config: |
     address-pools:
-    - name: default
+    - name: nickdoes.io
       protocol: layer2
       addresses:
       - {{ metallb_pool_start }}-{{ metallb_pool_end }}
+      avoid-buggy-ips: true
+      auto-assign: true
