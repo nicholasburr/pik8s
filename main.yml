@@ -2,8 +2,16 @@
 - hosts: all
   become: true
 
+  pre_tasks:
+    - import_tasks: tasks/arm64_rpi4.yml
+    - import_tasks: tasks/cmdline_setup.yml
+    - import_tasks: tasks/disable_swap.yml
+
   roles:
-    - role: ansible_role_pik8s
+    - role: nicholasburr.common
+#    - role: security
+#    - role: nicholasburr.docker_ce
+    - role: nicholasburr.kubernetes
 
   tasks:
     - name: create local .kube/config
@@ -11,10 +19,10 @@
         src: /etc/kubernetes/admin.conf
         dest: ~/.kube/config
         flat: true
-      when: pik8s_cluster_role == 'master'
+      when: kubernetes_cluster_role == 'master'
 
-- import_playbook: playbooks/metallb.yml
-
+#- import_playbook: playbooks/metallb.yml
+#
 #- import_playbook: playbooks/dashboard.yml
 #  when: pik8s_cluster_role == 'master'
 #

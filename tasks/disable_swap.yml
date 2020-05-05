@@ -1,0 +1,7 @@
+---
+- name: remove dphys-swapfile
+  apt:
+    name: dphys-swapfile
+    state: absent
+    purge: yes
+    force: yes

@@ -2,3 +2,50 @@
 - hosts: localhost
   connection: local
   gather_facts: no
+  vars:
+    dashboard_version: v2.0.0
+
+  tasks:
+  - name: deploy kubernetes dashboard
+    command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/{{ dashboard_version }}/aio/deploy/recommended.yaml
+
+# Doc: https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md#create-service-account
+  - name: create dashboard service account
+    k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: admin-user
+          namespace: kubernetes-dashboard
+
+# Doc: https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md#create-clusterrolebinding
+  - name: create dashboard admin access
+    k8s:
+      state: present
+      definition:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: kubernetes-dashboard
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: kubernetes-dashboard
+        subjects:
+          - kind: ServiceAccount
+            name: kubernetes-dashboard
+            namespace: kubernetes-dashboard
+
+  - name: get token
+    shell: kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | awk '/^deployment-controller-token-/{print $1}') | awk '$1=="token:"{print $2}'
+    register: kube_token
+    changed_when: false
+
+  - name: add token to ~/.kube/config
+    blockinfile:
+      path: ~/.kube/config
+      state: present
+      block: |4
+              token: {{ kube_token.stdout }}
