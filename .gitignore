@@ -1,7 +1,2 @@
 **/roles/*/
 !**/roles/requirements.yml
-!**/roles/metallb
-
-**/inventory/*
-!**/inventory/example.ini
-!**/inventory/example.yml
