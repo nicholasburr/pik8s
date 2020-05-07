@@ -5,3 +5,4 @@
     state: present
     insertafter: '^[pi4]'
     line: amd_64=1
+  notify: reboot

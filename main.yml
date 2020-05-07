@@ -7,11 +7,15 @@
     - import_tasks: tasks/cmdline_setup.yml
     - import_tasks: tasks/disable_swap.yml
 
+    - name: flush handlers before installing kubernetes
+      meta: flush_handlers
+
   roles:
+    - role: ansible-role-security
     - role: nicholasburr.common
-#    - role: security
-#    - role: nicholasburr.docker_ce
-    - role: nicholasburr.kubernetes
+      #    - role: nicholasburr.security
+      #    - role: nicholasburr.docker_ce
+      #    - role: nicholasburr.kubernetes
 
   tasks:
     - name: create local .kube/config
@@ -26,3 +30,8 @@
 #- import_playbook: playbooks/dashboard.yml
 #  when: pik8s_cluster_role == 'master'
 #
+
+  handlers:
+    - name: reboot
+      reboot:
+        reboot_timeout: 120
